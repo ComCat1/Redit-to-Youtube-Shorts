@@ -40,13 +40,15 @@ top_posts = subreddit.top("day", limit=50)  # Adjust limit as needed
 best_post = None
 best_score = -1
 
-for post in top_posts:
-    # Calculate score based on comments and upvotes
-    score = post.num_comments + post.score
-    # Check if the post's content length is within the desired limit and if it has the highest score
-    if score > best_score and len(post.title + ". " + post.selftext) <= 1000:
-        best_score = score
-        best_post = post
+while best_post is None:
+    for post in top_posts:
+        # Calculate score based on comments and upvotes
+        score = post.num_comments + post.score
+        # Check if the post's content length is within the desired limit and if it has the highest score
+        if score > best_score and len(post.title + ". " + post.selftext) <= 1000 and len(post.title + ". " + post.selftext) > 500:
+            best_score = score
+            best_post = post
+            break  # Exit the loop when a suitable post is found
 
 
 # Define the path to your Minecraft parkour video
