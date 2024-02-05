@@ -64,16 +64,16 @@ if best_post:
     current_time = 0
     for word in words:
         duration = len(word) / 5.0  # Estimate duration based on word length
-        # Create a text clip for the word with no background
-        txt_clip = TextClip(word, fontsize=24, color='white', font="Arial",
+        # Create a text clip for the word, make it larger (e.g., fontsize=48) and bold
+        # You might need to replace 'Arial-Bold' with a bold font available on your system
+        txt_clip = TextClip(word, fontsize=48, color='white', font="Arial-Bold",
                             size=(video_clip.w, video_clip.h))
         # Set the txt_clip to be centered by manually specifying position
         txt_clip = txt_clip.set_position('center').set_duration(duration).set_start(current_time)
         text_clips.append(txt_clip)
         current_time += duration
     
-    # Now, create a composite clip that combines the video and the text clips
-    # Ensuring text clips are layered above the video content.
+    # Create a composite clip that combines the video and the text clips
     if text_clips:  # Ensure there are text clips to add
         final_text_clip = concatenate_videoclips(text_clips, method="compose")
         final_clip = CompositeVideoClip([video_clip, final_text_clip], size=video_clip.size)
@@ -81,7 +81,7 @@ if best_post:
         final_clip = video_clip  # No text clips, just use the original video
     
     # Specify the output file path
-    final_video_path = "final_video_with_text_no_background.mp4"
+    final_video_path = "final_video_with_large_bold_text.mp4"
     # Write the final clip to file
     final_clip.write_videofile(final_video_path, fps=24)
     
