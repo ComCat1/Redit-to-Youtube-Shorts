@@ -64,29 +64,24 @@ if best_post:
     current_time = 0
     for word in words:
         duration = len(word) / 5.0  # Estimate duration based on word length
-        # Create a text clip for the word, customized as needed
-        txt_clip = TextClip(word, fontsize=24, color='white', bg_color='black',
+        # Create a text clip for the word with no background
+        txt_clip = TextClip(word, fontsize=24, color='white', font="Arial",
                             size=(video_clip.w, video_clip.h))
         # Set the txt_clip to be centered by manually specifying position
-        # Here, we make the text clip cover the entire video frame and rely on alignment
         txt_clip = txt_clip.set_position('center').set_duration(duration).set_start(current_time)
         text_clips.append(txt_clip)
         current_time += duration
     
-    # Create a composite clip that combines the video and the text clips
-    # The `CompositeVideoClip` constructor takes a list of clips, where the first clip is the base,
-    # and subsequent clips are layered on top. By adding `text_clips` on top of `video_clip`,
-    # we ensure the text is displayed above the video content.
+    # Now, create a composite clip that combines the video and the text clips
+    # Ensuring text clips are layered above the video content.
     if text_clips:  # Ensure there are text clips to add
-        # Combine text clips into a single clip
         final_text_clip = concatenate_videoclips(text_clips, method="compose")
-        # Layer the text clip over the video
         final_clip = CompositeVideoClip([video_clip, final_text_clip], size=video_clip.size)
     else:
         final_clip = video_clip  # No text clips, just use the original video
     
     # Specify the output file path
-    final_video_path = "final_video_with_text_centered.mp4"
+    final_video_path = "final_video_with_text_no_background.mp4"
     # Write the final clip to file
     final_clip.write_videofile(final_video_path, fps=24)
     
