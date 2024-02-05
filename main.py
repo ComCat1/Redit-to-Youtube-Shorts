@@ -8,6 +8,7 @@ from oauth2client.client import flow_from_clientsecrets
 from oauth2client.tools import run_flow, argparser
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
+import random
 
 # Set the path to the ImageMagick binary (update the path according to your installation)
 os.environ["IMAGEMAGICK_BINARY"] = "C:\\Program Files\\ImageMagick-7.0.11-Q16-HDRI\\magick.exe"
@@ -25,8 +26,11 @@ reddit = praw.Reddit(client_id='aYYgP0cb-iS-BBxJr6BNbA',
                      client_secret='OLzyI472QBfgJ40ai1sBiGvUi9GcCA',
                      user_agent='Plutus')
 
-# Choose your subreddit
-subreddit_name = 'stories'  # Target subreddit
+# List of subreddits to choose from
+subreddits = ["AmItheAsshole", "stories", "relationship_advice"]
+
+# Choose a subreddit randomly from the list
+subreddit_name = random.choice(subreddits)
 subreddit = reddit.subreddit(subreddit_name)
 
 # Fetch top posts
@@ -43,6 +47,7 @@ for post in top_posts:
     if score > best_score and len(post.title + ". " + post.selftext) <= 1000:
         best_score = score
         best_post = post
+
 
 # Define the path to your Minecraft parkour video
 video_file_path = "minecraft_parkour.mp4"
