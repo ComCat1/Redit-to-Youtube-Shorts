@@ -40,6 +40,7 @@ top_posts = subreddit.top("day", limit=50)  # Adjust limit as needed
 best_post = None
 best_score = -1
 
+
 while best_post is None:
     for post in top_posts:
         # Calculate score based on comments and upvotes
