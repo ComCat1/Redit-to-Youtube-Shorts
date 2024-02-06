@@ -22,7 +22,7 @@ def generate_speech(text, output_file):
     engine.runAndWait()
 
 # Setup for Reddit API
-reddit = praw.Reddit(client_id='aYYgP0cb-iS-BBxJr6BNbA',
+reddit = praw.Reddit(client_id='aYYgP0cb-iS-',
                      client_secret='OLzyI472QBfgJ40ai1sBiGvUi9GcCA',
                      user_agent='Plutus')
 
