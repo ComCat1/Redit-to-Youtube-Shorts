@@ -23,7 +23,7 @@ def generate_speech(text, output_file):
 
 # Setup for Reddit API
 reddit = praw.Reddit(client_id='aYYgP0cb-iS-',
-                     client_secret='OLzyI472QBfgJ40ai1sBiGvUi9GcCA',
+                     client_secret='',
                      user_agent='Plutus')
 
 # List of subreddits to choose from
