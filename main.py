@@ -2,12 +2,6 @@ import os
 import praw
 import pyttsx3
 from moviepy.editor import VideoFileClip, AudioFileClip, TextClip, CompositeVideoClip
-import httplib2
-from oauth2client.file import Storage
-from oauth2client.client import flow_from_clientsecrets
-from oauth2client.tools import run_flow, argparser
-from googleapiclient.discovery import build
-from googleapiclient.http import MediaFileUpload
 import random
 
 # Set the path to the ImageMagick binary (update the path according to your installation)
@@ -22,42 +16,36 @@ def generate_speech(text, output_file):
     engine.runAndWait()
 
 # Setup for Reddit API
-reddit = praw.Reddit(client_id='aYYgP0cb-iS-',
+reddit = praw.Reddit(client_id='',
                      client_secret='',
-                     user_agent='Plutus')
+                     user_agent='')
 
 # List of subreddits to choose from
 subreddits = ["AmItheAsshole", "stories", "relationship_advice"]
 
-# Choose a subreddit randomly from the list
-subreddit_name = random.choice(subreddits)
-subreddit = reddit.subreddit(subreddit_name)
+# Fetch a random post from the selected subreddits with content length between 500 and 1000 characters
+selected_post = None
 
-# Fetch top posts
-top_posts = subreddit.top("day", limit=50)  # Adjust limit as needed
+# Keep trying different subreddits until a suitable post is found
+while selected_post is None and subreddits:
+    subreddit_name = random.choice(subreddits)
+    subreddit = reddit.subreddit(subreddit_name)
+    posts = list(subreddit.hot(limit=100))  # Fetch up to 100 hot posts
 
-# Initialize variables to find the best post
-best_post = None
-best_score = -1
+    # Filter posts by content length criteria
+    filtered_posts = [post for post in posts if 500 < len(post.title + ". " + post.selftext) <= 1000]
 
-
-while best_post is None:
-    for post in top_posts:
-        # Calculate score based on comments and upvotes
-        score = post.num_comments + post.score
-        # Check if the post's content length is within the desired limit and if it has the highest score
-        if score > best_score and len(post.title + ". " + post.selftext) <= 1000 and len(post.title + ". " + post.selftext) > 500:
-            best_score = score
-            best_post = post
-            break  # Exit the loop when a suitable post is found
-
+    if filtered_posts:
+        selected_post = random.choice(filtered_posts)
+    else:
+        subreddits.remove(subreddit_name)  # Remove the subreddit from the list if no suitable post is found
 
 # Define the path to your Minecraft parkour video
 video_file_path = "minecraft_parkour.mp4"
 
-if best_post:
-    # Text from the best post within character limit
-    text_to_speech = best_post.title + ". " + best_post.selftext
+if selected_post:
+    # Text from the selected post within character limit
+    text_to_speech = selected_post.title + ". " + selected_post.selftext
     
     # Generate speech from text
     audio_file_path = "output_tts.mp3"
@@ -68,9 +56,7 @@ if best_post:
     audio_clip = AudioFileClip(audio_file_path)
     video_clip = video_clip.set_audio(audio_clip).subclip(0, min(video_clip.duration, audio_clip.duration))
 
-    # Split the text into words
-    words = text_to_speech.split()
-    
+    # Generate speech audio and get estimated duration and word count
     def generate_speech_and_get_duration(text, output_file):
         engine = pyttsx3.init()
         voices = engine.getProperty('voices')
@@ -84,8 +70,6 @@ if best_post:
         total_duration = len(words) / words_per_minute * 60  # Convert to seconds
         return total_duration, len(words)
 
-    # Generate speech audio and get estimated duration and word count
-    audio_file_path = "output_tts.mp3"
     total_duration, word_count = generate_speech_and_get_duration(text_to_speech, audio_file_path)
 
     # Load the audio to get its actual duration
@@ -96,16 +80,29 @@ if best_post:
     avg_duration_per_word = actual_duration / word_count
 
     # Create text clips using the calculated average duration
+    speed_up_factor = 0.9
+    avg_duration_per_word *= speed_up_factor
+
+    # Create text clips using the adjusted average duration, with a black border around the text
     text_clips = []
     current_time = 0
     for word in text_to_speech.split():
+        # Determine duration; if word ends with a period, add a pause
+        duration = avg_duration_per_word
+        if word.endswith('.'):
+            duration += 1.5  # Add an extra second for a pause, adjust as needed for speed up
+        
+        # Adjust duration for speeding up
+        duration *= speed_up_factor  # This line is actually redundant if avg_duration_per_word has been adjusted globally
+        
         txt_clip = TextClip(word, fontsize=48, color='yellow', font="Arial-Bold",
-                            size=(video_clip.w, video_clip.h))
-        txt_clip = txt_clip.set_position('center').set_duration(avg_duration_per_word).set_start(current_time)
+                            size=(video_clip.w, video_clip.h),
+                            stroke_color='black', stroke_width=1)
+        txt_clip = txt_clip.set_position('center').set_duration(duration).set_start(current_time)
         text_clips.append(txt_clip)
-        current_time += avg_duration_per_word
+        current_time += duration
 
-    # Create a composite clip that includes the video, audio, and timed text clips
+    # Create a composite clip that includes the video, audio, and timed text clips with black borders
     final_clip = CompositeVideoClip([video_clip.set_audio(audio_clip)] + text_clips, size=video_clip.size)
 
     final_video_path = "final_synced_video.mp4"
